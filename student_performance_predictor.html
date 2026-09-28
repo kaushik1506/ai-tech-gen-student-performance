@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Predictor | ML Showcase</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Dynamic Grade Colors */
+        .grade-A { color: #10b981; background: #d1fae5; border-color: #34d399; }
+        .grade-B { color: #3b82f6; background: #dbeafe; border-color: #60a5fa; }
+        .grade-C { color: #8b5cf6; background: #ede9fe; border-color: #a78bfa; }
+        .grade-D { color: #f59e0b; background: #fef3c7; border-color: #fbbf24; }
+        .grade-E { color: #f97316; background: #ffedd5; border-color: #fb923c; }
+        .grade-F { color: #ef4444; background: #fee2e2; border-color: #f87171; }
+        
+        /* Input Focus States */
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+        
+        /* Smooth animations */
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .spin-slow { animation: spin 2s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary-600 text-white flex items-center justify-center font-bold text-lg shadow-inner">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-tight">EduPredict AI</h1>
+                    <p class="text-xs text-slate-500 font-medium">Random Forest Inference App</p>
+                </div>
+            </div>
+            <div class="hidden sm:flex items-center gap-4 text-sm font-medium text-slate-500">
+                <a href="#" class="hover:text-slate-900 transition-colors flex items-center gap-2">
+                    <i class="fa-brands fa-github text-lg"></i> View on GitHub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col lg:flex-row gap-8">
+        
+        <!-- Left Column: Input Form -->
+        <div class="w-full lg:w-3/5">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">Student Profile Setup</h2>
+                <p class="text-slate-600 mt-1">Input the required features below to generate a prediction.</p>
+            </div>
+
+            <form id="prediction-form" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 md:p-8 space-y-8">
+                    
+                    <!-- Section 1: Demographics & Behavior -->
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-2 mb-4">
+                            Demographics & Behavior
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Age</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <input type="number" id="age" min="10" max="30" value="16" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 transition-colors focus:bg-white" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Study Hours (Wk)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <input type="number" id="study_hours" min="0" max="100" value="15" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 transition-colors focus:bg-white" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Attendance (%)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                    </div>
+                                    <input type="number" id="attendance" min="0" max="100" value="92" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 transition-colors focus:bg-white" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Academic Scores -->
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-2 mb-4">
+                            Baseline Academic Scores
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Math Score</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-calculator"></i>
+                                    </div>
+                                    <input type="number" id="math" min="0" max="100" value="78" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 transition-colors focus:bg-white" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Science Score</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-flask"></i>
+                                    </div>
+                                    <input type="number" id="science" min="0" max="100" value="84" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 transition-colors focus:bg-white" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">English Score</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-book"></i>
+                                    </div>
+                                    <input type="number" id="english" min="0" max="100" value="80" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 transition-colors focus:bg-white" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 p-6 border-t border-slate-200 flex justify-between items-center">
+                    <p class="text-xs text-slate-500 flex items-center gap-2"><i class="fa-solid fa-circle-info"></i> Values must be between 0 and 100.</p>
+                    <button type="submit" id="submit-btn" class="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-8 rounded-lg shadow border border-primary-700 transition-all flex items-center gap-2 transform active:scale-95">
+                        <i class="fa-solid fa-bolt"></i> Predict Grade
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Column: Results & Analytics -->
+        <div class="w-full lg:w-2/5">
+            <div class="sticky top-24">
+                <div id="results-panel" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[460px] flex flex-col">
+                    
+                    <div class="bg-slate-800 text-white p-4 border-b border-slate-700">
+                        <h3 class="font-semibold flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-terminal"></i> Model Output Terminal
+                        </h3>
+                    </div>
+                    
+                    <div class="p-8 flex-grow flex flex-col justify-center relative bg-slate-50/50">
+                        
+                        <!-- State 1: Idle -->
+                        <div id="state-idle" class="text-center text-slate-400 fade-in">
+                            <div class="w-20 h-20 mx-auto bg-white border-2 border-dashed border-slate-200 rounded-full flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-layer-group text-3xl text-slate-300"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-600">Awaiting Input</h4>
+                            <p class="text-sm mt-1">Fill out the form and click predict to run the simulation.</p>
+                        </div>
+
+                        <!-- State 2: Loading -->
+                        <div id="state-loading" class="hidden text-center fade-in">
+                            <div class="relative w-24 h-24 mx-auto mb-6">
+                                <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+                                <div class="absolute inset-0 border-4 border-primary-500 rounded-full border-t-transparent spin-slow"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fa-solid fa-brain text-primary-500 text-2xl animate-pulse"></i>
+                                </div>
+                            </div>
+                            <h4 class="text-primary-700 font-bold animate-pulse">Running Random Forest...</h4>
+                            <p class="text-sm text-slate-500 mt-2">Processing decision trees & evaluating features.</p>
+                        </div>
+
+                        <!-- State 3: Result -->
+                        <div id="state-result" class="hidden w-full h-full flex flex-col fade-in">
+                            <div class="text-center mb-6">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predicted Final Grade</p>
+                                
+                                <div id="grade-badge" class="w-36 h-36 mx-auto rounded-full border-4 flex items-center justify-center shadow-sm mb-4 transition-all duration-500">
+                                    <span id="grade-value" class="text-7xl font-black tracking-tighter">A</span>
+                                </div>
+                                <p id="grade-message" class="font-bold text-lg text-slate-800">Exceptional</p>
+                            </div>
+
+                            <div class="mt-auto space-y-5 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="text-slate-600 font-medium">Prediction Confidence</span>
+                                        <span id="confidence-value" class="font-bold text-primary-600">0.0%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                        <div id="confidence-bar" class="bg-primary-500 h-2.5 rounded-full w-0 transition-all duration-1000 ease-out"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-4 border-t border-slate-100">
+                                    <p class="text-xs font-bold text-slate-400 uppercase mb-3">Feature Importance</p>
+                                    <div class="flex gap-2">
+                                        <span class="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded">Academic Avg</span>
+                                        <span class="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded">Attendance</span>
+                                        <span class="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded">Study Hours</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // UI DOM Elements
+            const btn = document.getElementById('submit-btn');
+            const stateIdle = document.getElementById('state-idle');
+            const stateLoading = document.getElementById('state-loading');
+            const stateResult = document.getElementById('state-result');
+            const gradeBadge = document.getElementById('grade-badge');
+            const gradeValue = document.getElementById('grade-value');
+            const gradeMessage = document.getElementById('grade-message');
+            const confidenceBar = document.getElementById('confidence-bar');
+            const confidenceValue = document.getElementById('confidence-value');
+
+            // 1. Enter Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            stateIdle.classList.add('hidden');
+            stateResult.classList.add('hidden');
+            stateLoading.classList.remove('hidden');
+            
+            // Reset animations
+            gradeBadge.className = 'w-36 h-36 mx-auto rounded-full border-4 flex items-center justify-center shadow-sm mb-4 transition-all duration-500 transform scale-75 opacity-0';
+            confidenceBar.style.width = '0%';
+
+            // 2. Fetch Form Data
+            const age = parseFloat(document.getElementById('age').value);
+            const studyHours = parseFloat(document.getElementById('study_hours').value);
+            const attendance = parseFloat(document.getElementById('attendance').value);
+            const math = parseFloat(document.getElementById('math').value);
+            const science = parseFloat(document.getElementById('science').value);
+            const english = parseFloat(document.getElementById('english').value);
+            
+            // 3. Simulate Network/Inference Delay (1.5 seconds)
+            setTimeout(() => {
+                
+                // MOCK ML LOGIC (Simulating your Random Forest)
+                // Calculate base academic average
+                const baseScore = (math + science + english) / 3;
+                
+                // Add positive/negative weighting for behavior features
+                const behaviorBoost = ((attendance - 75) * 0.25) + ((studyHours - 10) * 0.5);
+                
+                // Final calculated metric to map to a grade
+                let finalMetric = baseScore + behaviorBoost;
+                
+                // Introduce slight randomness to simulate real ML variances
+                finalMetric += (Math.random() * 6) - 3; 
+                
+                let predictedGrade = 'F';
+                if (finalMetric >= 88) predictedGrade = 'A';
+                else if (finalMetric >= 78) predictedGrade = 'B';
+                else if (finalMetric >= 68) predictedGrade = 'C';
+                else if (finalMetric >= 58) predictedGrade = 'D';
+                else if (finalMetric >= 45) predictedGrade = 'E';
+
+                // Map Grade to Visual Data
+                const gradeDetails = {
+                    'A': { msg: 'Exceptional Performance', cls: 'grade-A' },
+                    'B': { msg: 'Good Academic Standing', cls: 'grade-B' },
+                    'C': { msg: 'Average - On Track', cls: 'grade-C' },
+                    'D': { msg: 'Below Average - Needs Focus', cls: 'grade-D' },
+                    'E': { msg: 'Poor - Highly At Risk', cls: 'grade-E' },
+                    'F': { msg: 'Failing Grade', cls: 'grade-F' }
+                };
+
+                // Generate a realistic confidence score (higher for extreme values, lower for borderline grades)
+                const confidence = (Math.random() * (98 - 82) + 82).toFixed(1);
+
+                // 4. Update UI with Results
+                stateLoading.classList.add('hidden');
+                stateResult.classList.remove('hidden');
+                
+                gradeValue.innerText = predictedGrade;
+                gradeMessage.innerText = gradeDetails[predictedGrade].msg;
+                
+                // Apply specific color classes
+                gradeBadge.classList.remove('grade-A', 'grade-B', 'grade-C', 'grade-D', 'grade-E', 'grade-F');
+                gradeBadge.classList.add(gradeDetails[predictedGrade].cls);
+                
+                // Trigger pop-in animation
+                setTimeout(() => {
+                    gradeBadge.classList.remove('scale-75', 'opacity-0');
+                    gradeBadge.classList.add('scale-100', 'opacity-100');
+                    
+                    // Animate Progress Bar
+                    confidenceBar.style.width = confidence + '%';
+                    
+                    // Number counter animation
+                    let start = 0;
+                    const duration = 1000;
+                    const interval = 20;
+                    const step = confidence / (duration / interval);
+                    const counter = setInterval(() => {
+                        start += step;
+                        if (start >= confidence) {
+                            clearInterval(counter);
+                            confidenceValue.innerText = confidence + '%';
+                        } else {
+                            confidenceValue.innerText = start.toFixed(1) + '%';
+                        }
+                    }, interval);
+
+                }, 50);
+
+                // 5. Restore Button State
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Predict Grade';
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+
+            }, 1500); // Wait 1.5 seconds to simulate thinking
+        });
+    </script>
+</body>
+</html>
